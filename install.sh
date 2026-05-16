@@ -8,14 +8,24 @@ BINARY="clog"
 echo "Installing CLOG - High-Visibility Caddy Logs"
 echo ""
 
-# Detect architecture
+# Detect OS and architecture
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
+
+case $OS in
+    linux|darwin) ;;
+    *)
+        echo "Unsupported OS: $OS"
+        exit 1
+        ;;
+esac
+
 case $ARCH in
     x86_64)
-        ASSET="clog-linux-amd64"
+        ASSET="clog-${OS}-amd64"
         ;;
     aarch64|arm64)
-        ASSET="clog-linux-arm64"
+        ASSET="clog-${OS}-arm64"
         ;;
     *)
         echo "Unsupported architecture: $ARCH"
@@ -23,7 +33,7 @@ case $ARCH in
         ;;
 esac
 
-echo "Detected architecture: $ARCH"
+echo "Detected: $OS/$ARCH"
 echo "Downloading $ASSET..."
 
 # Get latest release download URL
@@ -46,4 +56,4 @@ sudo mv "/tmp/$BINARY" "$INSTALL_DIR/$BINARY"
 
 echo ""
 echo "CLOG installed successfully!"
-echo "Run: clog /var/log/caddy/access.log"
+echo "Run: clog /path/to/caddy/access.log"
