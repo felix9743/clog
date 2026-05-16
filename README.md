@@ -1,5 +1,5 @@
 > [!WARNING]
-> 🚨 SECURITY ALERT
+> 🚨 SECURITY ALERT - 
 > Users have identified there are fake clone repos which are redistributing CLOG with malware inclusions.
 > Please ensure you ONLY download CLOG from this repo. If in doubt and cannot verify the origin of your CLOG instalation, delete CLOG from your system immediately and perform virus/malware scanning on your system. 
 
