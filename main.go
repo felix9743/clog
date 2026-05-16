@@ -1,3 +1,6 @@
+// CLOG v0.6.4 - Caddy Log Viewer
+// Source Repository: https://github.com/hellotimking/clog
+
 package main
 
 import (
@@ -229,7 +232,7 @@ func main() {
 	var f, host string
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "\033[1mCLOG v0.6.3 - High-Visibility Caddy Logs\033[0m\n")
+		fmt.Fprintf(os.Stderr, "\033[1mCLOG v0.6.4 - High-Visibility Caddy Logs\033[0m\n")
 		fmt.Fprintf(os.Stderr, "Usage: clog [options] <logfile>\n\nOptions:\n")
 		fmt.Fprintf(os.Stderr, "  --lines, -l         number of previous lines to show\n")
 		fmt.Fprintf(os.Stderr, "  --host, -h          only show logs for this domain or IP\n")
@@ -242,6 +245,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  --clear-screen, -c  clear terminal before starting and on exit\n")
 		fmt.Fprintf(os.Stderr, "  --help              show this help menu\n\n")
 	}
+
+// CLOG v0.6.4 - Caddy Log Viewer
+// Source Repository: https://github.com/hellotimking/clog
 
 	flag.IntVar(&lCount, "l", 0, "")
 	flag.IntVar(&lCount, "lines", 0, "")
