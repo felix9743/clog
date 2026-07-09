@@ -16,7 +16,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"unsafe"
 
 	"github.com/hpcloud/tail"
 )
@@ -55,12 +54,6 @@ type LogStats struct {
 	TopIP      string
 	TopIPPct   int
 	AvgLatency int
-}
-
-func getProcessCPUTime() int64 {
-	var usage syscall.Rusage
-	syscall.Getrusage(syscall.RUSAGE_SELF, &usage)
-	return usage.Utime.Nano() + usage.Stime.Nano()
 }
 
 func calculateStats(logs []CaddyLog) LogStats {
@@ -106,13 +99,6 @@ func calculateStats(logs []CaddyLog) LogStats {
 	s.TopIP = topIP
 	s.TopIPPct = int((float64(topCount) / total) * 100)
 	return s
-}
-
-func getTermSize() (int, int) {
-	type winsize struct{ Row, Col, X, Y uint16 }
-	ws := &winsize{}
-	syscall.Syscall(syscall.SYS_IOCTL, uintptr(syscall.Stdin), uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(ws)))
-	return int(ws.Row), int(ws.Col)
 }
 
 func doubleClear() { fmt.Print("\033[H\033[2J\033[3J") }

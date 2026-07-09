@@ -1,0 +1,50 @@
+name: CI (Tests)
+run-name: ${{ github.workflow }} - ${{ github.ref }} - by ${{ github.actor }}
+
+# events that trigger this workflow
+on:
+    pull_request:
+        branches: ["main"]
+        paths-ignore:
+            - "**.md"
+            - "build/**"
+            - "assets/**"
+    push:
+        branches: ["main"]
+        paths-ignore:
+            - "**.md"
+            - "build/**"
+            - "assets/**"
+    workflow_dispatch:
+
+jobs:
+    build:
+        name: Build App
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read # access to check out code and install dependencies
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - uses: actions/setup-go@v6
+              with:
+                  go-version: "1.24"
+
+            - run: go run . --help
+
+            - name: Build binaries
+              run: |
+                  mkdir -p build
+                  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/clog-linux-amd64
+                  CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o build/clog-linux-arm64
+                  CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o build/clog-windows-amd64.exe
+                  CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -o build/clog-windows-arm64.exe
+                  CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o build/clog-darwin-amd64
+                  CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o build/clog-darwin-arm64
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: clog-binaries
+                  path: build/
