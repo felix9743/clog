@@ -77,7 +77,8 @@ sudo mv clog /usr/local/bin/
 | \-h | \--host | Only show logs for a specific domain or IP address. |
 | \-f | \--find | Only show lines containing a specific string. |
 | \-e | \--errors | Only show requests with status code \>= 400\. |
-| \-ha | \--hide-assets | Hides common asset types (.js, .css, images, etc). |
+| \-ha | \--hide-assets | Hides common asset types (.js, .css, images, etc) using a pages whitelist. |
+| \-aw | \--assets-whitelist | Comma-separated extensions to append to the assets whitelist (e.g. .js,.json,.pdf). |
 | \-a | \--all | Show entire history and ignore asset filters. |
 | \-s | \--status | Show system resource bar at the bottom of the terminal. |
 | \-d | \--dashboard | Enable 1-second dashboard mode for real-time metrics. |
@@ -168,6 +169,14 @@ clog --hide-assets /path/to/access.log
 If you'd like to clear the screen before and after running CLOG:
 ```
 clog --clear-screen /path/to/access.log
+```
+
+---
+
+### Extending Assets Whitelist
+When `--hide-assets` is enabled, `clog` only displays standard web pages (`.html`, `.php`, etc.) and APIs (URLs without extensions). You can dynamically add custom extensions to the whitelist (so they aren't hidden):
+```bash
+clog --hide-assets --assets-whitelist .js,.json,.pdf /path/to/access.log
 ```
 
 ---
