@@ -31,7 +31,7 @@ jobs:
               with:
                   go-version: "1.24"
 
-            - run: go run main.go --help
+            - run: go run . --help
 
             - name: Build binaries
               run: |
