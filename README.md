@@ -82,6 +82,7 @@ sudo mv clog /usr/local/bin/
 | \-s | \--status | Show system resource bar at the bottom of the terminal. |
 | \-d | \--dashboard | Enable 1-second dashboard mode for real-time metrics. |
 | \-c | \--clear-screen | Clear terminal before starting and on exit. |
+| \-r | \--remote-ip | Use direct connection IP instead of client_ip. |
 |  | \--help | Show the help menu and usage instructions. |
 
 ----
@@ -168,6 +169,14 @@ clog --hide-assets /path/to/access.log
 If you'd like to clear the screen before and after running CLOG:
 ```
 clog --clear-screen /path/to/access.log
+```
+
+---
+
+### Forcing Remote IP
+By default, `clog` prioritizes the Caddy `client_ip` field to show the visitor's real IP behind proxies, falling back to `remote_ip` if missing. To force using Caddy's direct connection IP (`remote_ip`) instead:
+```bash
+clog --remote-ip /path/to/access.log
 ```
 
 ---
