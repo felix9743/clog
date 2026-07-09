@@ -34,16 +34,18 @@ type CaddyLog struct {
 }
 
 var (
-	isTerminal      bool
-	totalLines      int
-	lastSize        int64
-	startTime       time.Time
-	lastH, lastW    int
-	lastCPUTime     int64
-	lastSampleTime  time.Time
-	cachedLogs      []CaddyLog
-	cachedStats     LogStats
-	remoteIP        bool
+	isTerminal       bool
+	totalLines       int
+	lastSize         int64
+	startTime        time.Time
+	lastH, lastW     int
+	lastCPUTime      int64
+	lastSampleTime   time.Time
+	cachedLogs       []CaddyLog
+	cachedStats      LogStats
+	remoteIP         bool
+	lastParsedOffset int64
+	parseLeftover    string
 )
 
 type LogStats struct {
@@ -173,16 +175,40 @@ func getLastLines(filePath string, n int) ([]string, int64) {
 	var cursor int64 = 0
 	bufSize := int64(4096)
 	if fileSize < bufSize { bufSize = fileSize }
+	buf := make([]byte, bufSize)
+
+	var leftover string
 	for cursor < fileSize {
+		readSize := bufSize
 		cursor += bufSize
-		if cursor > fileSize { cursor = fileSize }
+		if cursor > fileSize {
+			readSize = fileSize - (cursor - bufSize)
+			cursor = fileSize
+		}
+
 		file.Seek(fileSize-cursor, io.SeekStart)
-		buf := make([]byte, bufSize)
-		file.Read(buf)
-		chunk := strings.Split(string(buf), "\n")
-		if len(lines) == 0 && chunk[len(chunk)-1] == "" { chunk = chunk[:len(chunk)-1] }
+		c, err := file.Read(buf[:readSize])
+		if c <= 0 || err != nil { break }
+
+		content := string(buf[:c]) + leftover
+		chunk := strings.Split(content, "\n")
+
+		if fileSize-cursor > 0 {
+			leftover = chunk[0]
+			chunk = chunk[1:]
+		} else {
+			leftover = ""
+		}
+
+		if len(lines) == 0 && len(chunk) > 0 && chunk[len(chunk)-1] == "" {
+			chunk = chunk[:len(chunk)-1]
+		}
+
 		lines = append(chunk, lines...)
 		if len(lines) > n { return lines[len(lines)-n:], fileSize }
+	}
+	if leftover != "" {
+		lines = append([]string{leftover}, lines...)
 	}
 	return lines, fileSize
 }
@@ -331,23 +357,75 @@ func main() {
 
 func processLogs(filePath string, lCount int, ha bool, e bool, all bool, f string, host string, count bool, dash bool, width int, shouldUpdate bool) {
 	if shouldUpdate {
-		fetchCount := lCount * 10
-		if all { fetchCount = totalLines }
-		if fetchCount < 10 { fetchCount = 10 }
-		rawLines, _ := getLastLines(filePath, fetchCount)
-		newLogs := make([]CaddyLog, 0, len(rawLines))
-		for _, line := range rawLines {
-			if line == "" { continue }
-			var l CaddyLog
-			if err := json.Unmarshal([]byte(line), &l); err == nil {
-				if !remoteIP && l.Request.ClientIP != "" {
-					l.Request.RemoteIP = l.Request.ClientIP
+		info, err := os.Stat(filePath)
+		if err == nil {
+			currentSize := info.Size()
+			// Si premier run ou fichier tronqué/vidé
+			if lastParsedOffset == 0 || currentSize < lastParsedOffset {
+				fetchCount := lCount * 10
+				if all { fetchCount = totalLines }
+				if fetchCount < 10 { fetchCount = 10 }
+				rawLines, _ := getLastLines(filePath, fetchCount)
+				newLogs := make([]CaddyLog, 0, len(rawLines))
+				for _, line := range rawLines {
+					if line == "" { continue }
+					var l CaddyLog
+					if err := json.Unmarshal([]byte(line), &l); err == nil {
+						if !remoteIP && l.Request.ClientIP != "" {
+							l.Request.RemoteIP = l.Request.ClientIP
+						}
+						newLogs = append(newLogs, l)
+					}
 				}
-				newLogs = append(newLogs, l)
+				cachedLogs = newLogs
+				lastParsedOffset = currentSize
+				parseLeftover = ""
+			} else if currentSize > lastParsedOffset {
+				// Lecture incrémentale
+				f, err := os.Open(filePath)
+				if err == nil {
+					defer f.Close()
+					f.Seek(lastParsedOffset, io.SeekStart)
+					buf := make([]byte, 32*1024)
+					var content string
+					for {
+						c, err := f.Read(buf)
+						if c > 0 { content += string(buf[:c]) }
+						if err != nil { break }
+					}
+
+					content = parseLeftover + content
+					lines := strings.Split(content, "\n")
+
+					if len(lines) > 0 {
+						parseLeftover = lines[len(lines)-1]
+						lines = lines[:len(lines)-1]
+					}
+
+					for _, line := range lines {
+						if line == "" { continue }
+						var l CaddyLog
+						if err := json.Unmarshal([]byte(line), &l); err == nil {
+							if !remoteIP && l.Request.ClientIP != "" {
+								l.Request.RemoteIP = l.Request.ClientIP
+							}
+							cachedLogs = append(cachedLogs, l)
+						}
+					}
+
+					// Tronquer cachedLogs pour ne pas accumuler indéfiniment en mémoire
+					limit := lCount * 10
+					if all { limit = totalLines }
+					if limit < 100 { limit = 100 }
+					if len(cachedLogs) > limit {
+						cachedLogs = cachedLogs[len(cachedLogs)-limit:]
+					}
+
+					lastParsedOffset = currentSize
+				}
 			}
+			cachedStats = calculateStats(cachedLogs)
 		}
-		cachedLogs = newLogs
-		cachedStats = calculateStats(cachedLogs)
 	}
 
 	if isTerminal || count {
