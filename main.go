@@ -222,17 +222,17 @@ func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "\033[1mCLOG v0.6.5 - High-Visibility Caddy Logs\033[0m\n")
 		fmt.Fprintf(os.Stderr, "Usage: clog [options] <logfile>\n\nOptions:\n")
-		fmt.Fprintf(os.Stderr, "  --lines, -l         number of previous lines to show\n")
-		fmt.Fprintf(os.Stderr, "  --host, -h          only show logs for this domain or IP\n")
-		fmt.Fprintf(os.Stderr, "  --find, -f          only show lines containing this string\n")
-		fmt.Fprintf(os.Stderr, "  --errors, -e        only show requests with status >= 400\n")
-		fmt.Fprintf(os.Stderr, "  --hide-assets, -ha  hides common asset types (.js, .css, images, etc)\n")
-		fmt.Fprintf(os.Stderr, "  --all, -a           show entire history and ignore asset filters\n")
-		fmt.Fprintf(os.Stderr, "  --status, -s        show system resource bar at bottom\n")
-		fmt.Fprintf(os.Stderr, "  --dashboard, -d     enable 1-second dashboard mode\n")
-		fmt.Fprintf(os.Stderr, "  --clear-screen, -c  clear terminal before starting and on exit\n")
-		fmt.Fprintf(os.Stderr, "  -r, --remote-ip     Use direct connection IP instead of client IP.\n")
-		fmt.Fprintf(os.Stderr, "  --help              show this help menu\n\n")
+		fmt.Fprintf(os.Stderr, "  -l,  --lines         number of previous lines to show\n")
+		fmt.Fprintf(os.Stderr, "  -h,  --host          only show logs for this domain or IP\n")
+		fmt.Fprintf(os.Stderr, "  -f,  --find          only show lines containing this string\n")
+		fmt.Fprintf(os.Stderr, "  -e,  --errors        only show requests with status >= 400\n")
+		fmt.Fprintf(os.Stderr, "  -ha, --hide-assets   hides common asset types (.js, .css, images, etc)\n")
+		fmt.Fprintf(os.Stderr, "  -a,  --all           show entire history and ignore asset filters\n")
+		fmt.Fprintf(os.Stderr, "  -s,  --status        show system resource bar at bottom\n")
+		fmt.Fprintf(os.Stderr, "  -d,  --dashboard     enable 1-second dashboard mode\n")
+		fmt.Fprintf(os.Stderr, "  -c,  --clear-screen  clear terminal before starting and on exit\n")
+		fmt.Fprintf(os.Stderr, "  -r,  --remote-ip     Use direct connection IP instead of client IP.\n")
+		fmt.Fprintf(os.Stderr, "  --help               show this help menu\n\n")
 	}
 
 // CLOG v0.6.5 - Caddy Log Viewer
