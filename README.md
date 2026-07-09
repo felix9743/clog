@@ -1,4 +1,5 @@
 # CLOG - High-Visibility Caddy Log Viewer 🪵👀
+
 ## Stop squinting at JSON log files. Start monitoring at the speed of Go.
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://github.com/hellotimking/clog)
@@ -9,101 +10,114 @@
 [![GitHub Release](https://img.shields.io/github/v/release/hellotimking/clog)](https://github.com/hellotimking/clog/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/hellotimking/clog/total)](https://github.com/hellotimking/clog/releases)
 
-
 **CLOG** is a specialised log processor and visualiser built in Go. It solves user JSON-squinting by transforming Caddy's structured logs into an interactive, human-centric dashboard. Designed for systems administrators and developers who need instant situational awareness without the overhead of heavy logging stacks.
 
 **Transforming messy, hard-to-read JSON streams into a clean, actionable visual interface.**
 
 ---
 
-* [Features](#-features)
-* [How to Install CLOG](#-how-to-install-clog)
-* [Dashboard Mode](#-dashboard-mode)
-* [Command Line Interface](#-command-line-interface)
-* [How to Use](#-how-to-use)
-* [License](#-License)
-  
+- [Features](#-features)
+- [How to Install CLOG](#-how-to-install-clog)
+- [Dashboard Mode](#-dashboard-mode)
+- [Command Line Interface](#-command-line-interface)
+- [How to Use](#-how-to-use)
+- [License](#-License)
+
 ---
 
 ## 😀 Features
 
-* **🖥️ Auto-Height Matching:** Dashboard mode automatically matches the height and width of your terminal window, even if you resize it!
-* **⚡ Zero-Latency Streaming:** Uses non-blocking I/O to handle high-traffic environments without dropping frames.
-* **📊 Real-time Analytics:** Instant status code distribution (2xx, 3xx, 4xx, 5xx) visualised in the TUI.
-* **🔍 Power Filtering:** Regex-based or field-specific filtering to isolate problematic endpoints or specific status codes.
-* **👀 Schema Aware:** Deep understanding of Caddy's default JSON log structure—no configuration required.
-* **🎨 Responsive TUI:** Built with a terminal UI that scales from small side-panes to full-screen NOC displays.
-* **⬇️ Low CPU Overhead:** Log parsing happens in parallel worker pools using Go routines.
-* **🧠 Predictable Memory:** Uses a fixed-size ring buffer for history to prevent memory leaks.
-* **🏎️ Efficiency:** Capable of processing thousands of lines per second with negligible latency.
+- **🖥️ Auto-Height Matching:** Dashboard mode automatically matches the height and width of your terminal window, even if you resize it!
+- **⚡ Zero-Latency Streaming:** Uses non-blocking I/O to handle high-traffic environments without dropping frames.
+- **📊 Real-time Analytics:** Instant status code distribution (2xx, 3xx, 4xx, 5xx) visualised in the TUI.
+- **🔍 Power Filtering:** Regex-based or field-specific filtering to isolate problematic endpoints or specific status codes.
+- **👀 Schema Aware:** Deep understanding of Caddy's default JSON log structure—no configuration required.
+- **🎨 Responsive TUI:** Built with a terminal UI that scales from small side-panes to full-screen NOC displays.
+- **⬇️ Low CPU Overhead:** Log parsing happens in parallel worker pools using Go routines.
+- **🧠 Predictable Memory:** Uses a fixed-size ring buffer for history to prevent memory leaks.
+- **🏎️ Efficiency:** Capable of processing thousands of lines per second with negligible latency.
 
 ---
 
 ## 🚀 How to Install CLOG
 
 ### Install.sh
+
 The simplest way to install CLOG on your own machine is to use the provided one line install script:
+
 ```
 curl -sL https://raw.githubusercontent.com/hellotimking/clog/main/install.sh | bash
 ```
+
 > [!NOTE]
 > As with all things on the web, you should read the above script to ensure it is safe for you to run.
 > (I mean, it is... but it's good to read through what it's going to do)
 
 ### Building From Source
+
 **Requires Go 1.24 or higher.**
 
 #### Clone the repository
+
 ```bash
 git clone https://github.com/hellotimking/clog.git
 cd clog
 ```
 
 #### Build optimised binary
+
 ```
 go build -ldflags="-s -w" -o clog
 ```
+
 #### Global install
+
 ```
 sudo mv clog /usr/local/bin/
 ```
+
 ---
 
 ## ⌨ Command Line Interface
 
-| Flag | Long Flag | Description |
-| :---- | :---- | :---- |
-| \-l | \--lines | Number of previous lines to show from the log file. |
-| \-h | \--host | Only show logs for a specific domain or IP address. |
-| \-f | \--find | Only show lines containing a specific string. |
-| \-e | \--errors | Only show requests with status code \>= 400\. |
-| \-ha | \--hide-assets | Hides common asset types (.js, .css, images, etc). |
-| \-a | \--all | Show entire history and ignore asset filters. |
-| \-s | \--status | Show system resource bar at the bottom of the terminal. |
-| \-d | \--dashboard | Enable 1-second dashboard mode for real-time metrics. |
-| \-c | \--clear-screen | Clear terminal before starting and on exit. |
-|  | \--help | Show the help menu and usage instructions. |
+| Flag | Long Flag           | Description                                                                                             |
+| :--- | :------------------ | :------------------------------------------------------------------------------------------------------ |
+| \-l  | \--lines            | Number of previous lines to show from the log file.                                                     |
+| \-h  | \--host             | Only show logs for a specific domain or IP address.                                                     |
+| \-f  | \--find             | Only show lines containing a specific string.                                                           |
+| \-e  | \--errors           | Only show requests with status code \>= 400\.                                                           |
+| \-ha | \--hide-assets      | Hides common asset types (.js, .css, images, etc).                                                      |
+| \-aw | \--assets-whitelist | Extensions to show that are normally hidden separated with comma, semi-colon, or pipe (.js,.json,.pdf). |
+| \-a  | \--all              | Show entire history and ignore asset filters.                                                           |
+| \-s  | \--status           | Show system resource bar at the bottom of the terminal.                                                 |
+| \-d  | \--dashboard        | Enable 1-second dashboard mode for real-time metrics.                                                   |
+| \-c  | \--clear-screen     | Clear terminal before starting and on exit.                                                             |
+| \-r  | \--remote-ip        | Use direct connection IP instead of client IP.                                                          |
+|      | \--help             | Show the help menu and usage instructions.                                                              |
 
-----
+---
 
 ## 🖥️ Dashboard Mode
 
 Activated with the --dashboard or -d flag, this mode transforms clog from a simple log tailer into a full-scale Network Operations Center (NOC) display.
 
 **The dashboard provides a high-fidelity, 1-second interval overview of your server's health:**
-* **Real-time Metrics:** Tracks live Requests Per Second (RPS) and cumulative request counts to identify traffic spikes as they happen.
-* **Status Distribution:** A visual breakdown of HTTP status codes (Success vs. Client/Server Errors). This allows you to distinguish between a healthy traffic surge and a coordinated DDoS or application failure at a glance.
-* **System Awareness:** When combined with the -s flag, it embeds a resource monitor showing CPU and Memory utilization, allowing you to correlate log spikes with hardware bottlenecks.
-* **Non-Blocking Engine:** Built on a polling architecture that reads from the tail of the log without locking the file, ensuring zero impact on your web server's performance.
+
+- **Real-time Metrics:** Tracks live Requests Per Second (RPS) and cumulative request counts to identify traffic spikes as they happen.
+- **Status Distribution:** A visual breakdown of HTTP status codes (Success vs. Client/Server Errors). This allows you to distinguish between a healthy traffic surge and a coordinated DDoS or application failure at a glance.
+- **System Awareness:** When combined with the -s flag, it embeds a resource monitor showing CPU and Memory utilization, allowing you to correlate log spikes with hardware bottlenecks.
+- **Non-Blocking Engine:** Built on a polling architecture that reads from the tail of the log without locking the file, ensuring zero impact on your web server's performance.
 
 Additionally, to add the status bar to the bottom to see uptime, memory use, and CPU use use the --status or -s flag
 
 ### To activate dashboard mode:
+
 ```
 clog -d -s /var/log/caddy/access.log
 ```
 
 ### Dashboard Mode Screenshot
+
 ![Finding Urls](assets/clog-dashboard.png)
 
 ---
@@ -111,81 +125,151 @@ clog -d -s /var/log/caddy/access.log
 ## 💡 How to Use
 
 ### Basic log tailing
+
 Simply point **clog** at your Caddy access log to see a cleaned-up, human-readable stream and it will print the last 10 lines in the log and continue to tail until stopped (CTRL + C):
+
 ```
 clog /path/to/access.log
 ```
+
 ![Basic Tail](assets/clog-default-use.png)
 
 ---
 
 ### Specify number of lines
+
 If you'd like to specify the number of lines to begin with:
+
 ```
 clog --lines 20 /path/to/access.log
 ```
+
 ![Tail with specified lines](assets/clog-lines.png)
 
 ---
 
 ### Limit to host
+
 If you want to limit the tail to a specific host:
+
 ```
 clog --host <ip address or host> /path/to/access.log
 ```
+
 ![Limit to host](assets/clog-host.png)
 
 ---
 
 ### Finding specific urls
+
 If you're searching for a specific url, you can define a string to search for:
+
 ```
 clog --find <text to find> /path/to/access.log
 ```
+
 ![Finding Urls](assets/clog-find.png)
 
 ---
 
 ### Limiting to errors only
+
 If you'd like to see only errors:
+
 ```
 clog --errors /path/to/access.log
 ```
+
 ![Errors Only](assets/clog-errors.png)
 
---- 
+---
 
 ### Hiding assets
+
 Sometimes you'll want to hide asset-type files to see cleaner results (images, audio, video, JS, css, and more)
+
 ```
 clog --hide-assets /path/to/access.log
 ```
+
 ![Hide Assets](assets/clog-hide-assets.png)
 
 ---
 
 ### Clear Screen
+
 If you'd like to clear the screen before and after running CLOG:
+
 ```
 clog --clear-screen /path/to/access.log
 ```
 
 ---
 
+### Forcing Remote IP
+
+By default, `clog` prioritizes the Caddy `client_ip` field to show the visitor's real IP behind proxies, falling back to `remote_ip` if missing. To force using Caddy's direct connection IP (`remote_ip`) instead:
+
+```bash
+clog --remote-ip /path/to/access.log
+```
+
+---
+
+### Extending Assets Whitelist
+
+When `--hide-assets` is enabled, `clog` only displays standard web pages (`.html`, `.php`, etc.) and APIs (URLs without extensions). You can dynamically add custom extensions to the whitelist (so they aren't hidden):
+
+```bash
+clog --hide-assets --assets-whitelist .js,.json,.pdf /path/to/access.log
+```
+
+---
+
+### Running via Docker & ttyd (Web Dashboard)
+
+You can run `clog` inside a Docker container and expose its terminal UI in a web browser using `ttyd`. This is ideal for lightweight, remote monitoring without SSH.
+
+Create a `docker-compose.yml` file:
+
+```yaml
+services:
+    clog-dashboard:
+        image: tsl0922/ttyd:alpine
+        restart: unless-stopped
+        command: ttyd clog -d -s /var/log/caddy/access.log
+        ports:
+            - "7681:7681"
+        volumes:
+            - ./clog:/usr/local/bin/clog:ro
+            - ./access.log:/var/log/caddy/access.log:ro
+```
+
+Run the container:
+
+```bash
+docker compose up -d
+```
+
+Now open your browser and navigate to `http://localhost:7681` to view your live web dashboard.
+
+---
+
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for more details.
 
---- 
+---
 
 # DISCLAIMER
 
-This software is provided "as is", without warranty of any kind, express or implied, 
-including but not limited to the warranties of merchantability, fitness for a 
+This software is provided "as is", without warranty of any kind, express or implied,
+including but not limited to the warranties of merchantability, fitness for a
 particular purpose, and noninfringement.
 
-In no event shall the authors or copyright holders be liable for any claim, damages, 
-or other liability, whether in an action of contract, tort, or otherwise, arising 
-from, out of, or in connection with the software or the use or other dealings in 
+In no event shall the authors or copyright holders be liable for any claim, damages,
+or other liability, whether in an action of contract, tort, or otherwise, arising
+from, out of, or in connection with the software or the use or other dealings in
 the software.
 
 Use of this software is at your own risk.
