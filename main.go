@@ -1,4 +1,4 @@
-// CLOG v0.6.4 - Caddy Log Viewer
+// CLOG v0.6.5 - Caddy Log Viewer
 // Source Repository: https://github.com/hellotimking/clog
 
 package main
@@ -27,6 +27,7 @@ type CaddyLog struct {
 	Duration  float64 `json:"duration"`
 	Request   struct {
 		RemoteIP string `json:"remote_ip"`
+		ClientIP string `json:"client_ip"`
 		Method   string `json:"method"`
 		Host     string `json:"host"`
 		URI      string `json:"uri"`
@@ -43,6 +44,7 @@ var (
 	lastSampleTime  time.Time
 	cachedLogs      []CaddyLog
 	cachedStats     LogStats
+	remoteIP        bool
 )
 
 type LogStats struct {
@@ -232,7 +234,7 @@ func main() {
 	var f, host string
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "\033[1mCLOG v0.6.4 - High-Visibility Caddy Logs\033[0m\n")
+		fmt.Fprintf(os.Stderr, "\033[1mCLOG v0.6.5 - High-Visibility Caddy Logs\033[0m\n")
 		fmt.Fprintf(os.Stderr, "Usage: clog [options] <logfile>\n\nOptions:\n")
 		fmt.Fprintf(os.Stderr, "  --lines, -l         number of previous lines to show\n")
 		fmt.Fprintf(os.Stderr, "  --host, -h          only show logs for this domain or IP\n")
@@ -243,10 +245,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  --status, -s        show system resource bar at bottom\n")
 		fmt.Fprintf(os.Stderr, "  --dashboard, -d     enable 1-second dashboard mode\n")
 		fmt.Fprintf(os.Stderr, "  --clear-screen, -c  clear terminal before starting and on exit\n")
+		fmt.Fprintf(os.Stderr, "  -r, --remote-ip     Use direct connection IP instead of client IP.\n")
 		fmt.Fprintf(os.Stderr, "  --help              show this help menu\n\n")
 	}
 
-// CLOG v0.6.4 - Caddy Log Viewer
+// CLOG v0.6.5 - Caddy Log Viewer
 // Source Repository: https://github.com/hellotimking/clog
 
 	flag.IntVar(&lCount, "l", 0, "")
@@ -263,6 +266,8 @@ func main() {
 	flag.BoolVar(&all, "all", false, "")
 	flag.BoolVar(&clear, "c", false, "")
 	flag.BoolVar(&clear, "clear-screen", false, "")
+	flag.BoolVar(&remoteIP, "r", false, "")
+	flag.BoolVar(&remoteIP, "remote-ip", false, "")
 	flag.BoolVar(&count, "co", false, "")
 	flag.BoolVar(&count, "count", false, "")
 	flag.BoolVar(&status, "s", false, "")
@@ -340,7 +345,12 @@ func processLogs(filePath string, lCount int, ha bool, e bool, all bool, f strin
 		for _, line := range rawLines {
 			if line == "" { continue }
 			var l CaddyLog
-			if err := json.Unmarshal([]byte(line), &l); err == nil { newLogs = append(newLogs, l) }
+			if err := json.Unmarshal([]byte(line), &l); err == nil {
+				if !remoteIP && l.Request.ClientIP != "" {
+					l.Request.RemoteIP = l.Request.ClientIP
+				}
+				newLogs = append(newLogs, l)
+			}
 		}
 		cachedLogs = newLogs
 		cachedStats = calculateStats(cachedLogs)
@@ -401,6 +411,9 @@ func processLogs(filePath string, lCount int, ha bool, e bool, all bool, f strin
 		for line := range t.Lines {
 			var l CaddyLog
 			if err := json.Unmarshal([]byte(line.Text), &l); err != nil { continue }
+			if !remoteIP && l.Request.ClientIP != "" {
+				l.Request.RemoteIP = l.Request.ClientIP
+			}
 			if host != "" {
 				h := strings.ToLower(host)
 				if !strings.Contains(strings.ToLower(l.Request.RemoteIP), h) && !strings.Contains(strings.ToLower(l.Request.Host), h) { continue }
