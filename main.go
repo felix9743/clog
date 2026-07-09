@@ -273,10 +273,18 @@ func main() {
 
 	if flag.NArg() < 1 { flag.Usage(); os.Exit(1) }
 	filePath := flag.Arg(0)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "\033[31mError:\033[0m Log file '%s' not found.\n", filePath)
+	file, err := os.Open(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "\033[31mError:\033[0m Log file '%s' not found.\n", filePath)
+		} else if os.IsPermission(err) {
+			fmt.Fprintf(os.Stderr, "\033[31mError:\033[0m Insufficient permissions to read '%s'.\n", filePath)
+		} else {
+			fmt.Fprintf(os.Stderr, "\033[31mError:\033[0m Cannot open log file '%s': %v\n", filePath, err)
+		}
 		os.Exit(1)
 	}
+	file.Close()
 
 	fileInfo, _ := os.Stdout.Stat()
 	isTerminal = (fileInfo.Mode() & os.ModeCharDevice) != 0
