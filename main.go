@@ -46,7 +46,15 @@ var (
 	remoteIP         bool
 	lastParsedOffset int64
 	parseLeftover    string
+	assetsWhitelist  string
 )
+
+var pagesWhitelist = map[string]bool{
+	".html": true, ".htm": true, ".xhtml": true,
+	".php": true, ".jsp": true, ".asp": true, ".aspx": true,
+	".txt": true, ".xml": true,
+}
+
 
 type LogStats struct {
 	RPS        float64
@@ -215,9 +223,12 @@ func getLastLines(filePath string, n int) ([]string, int64) {
 
 func isAsset(uri string) bool {
 	clean := strings.Split(uri, "?")[0]
-	assets := map[string]bool{".js": true, ".css": true, ".map": true, ".scss": true, ".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true, ".avif": true, ".svg": true, ".ico": true, ".cur": true, ".woff": true, ".woff2": true, ".ttf": true, ".otf": true, ".eot": true, ".mp4": true, ".webm": true, ".mov": true, ".ogv": true, ".mp3": true, ".wav": true, ".m4a": true, ".ogg": true, ".flac": true, ".aac": true, ".zip": true, ".gz": true, ".tar": true, ".pdf": true, ".webmanifest": true, ".xml": true, ".robots.txt": true, ".php": true}
 	lastDot := strings.LastIndex(clean, ".")
-	return lastDot != -1 && assets[strings.ToLower(clean[lastDot:])]
+	if lastDot == -1 {
+		return false
+	}
+	ext := strings.ToLower(clean[lastDot:])
+	return !pagesWhitelist[ext]
 }
 
 func drawStatusBar(w int, dash bool) {
@@ -258,6 +269,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  -d,  --dashboard     enable 1-second dashboard mode\n")
 		fmt.Fprintf(os.Stderr, "  -c,  --clear-screen  clear terminal before starting and on exit\n")
 		fmt.Fprintf(os.Stderr, "  -r,  --remote-ip     Use direct connection IP instead of client IP.\n")
+		fmt.Fprintf(os.Stderr, "  -aw, --assets-whitelist  comma-separated extensions to whitelist (e.g. .json,.pdf)\n")
 		fmt.Fprintf(os.Stderr, "  --help               show this help menu\n\n")
 	}
 
@@ -286,7 +298,24 @@ func main() {
 	flag.BoolVar(&status, "status", false, "")
 	flag.BoolVar(&dash, "d", false, "")
 	flag.BoolVar(&dash, "dashboard", false, "")
+	flag.StringVar(&assetsWhitelist, "aw", "", "")
+	flag.StringVar(&assetsWhitelist, "assets-whitelist", "", "")
 	flag.Parse()
+
+	if assetsWhitelist != "" {
+		delimiters := []string{",", ";", "|"}
+		normalized := assetsWhitelist
+		for _, d := range delimiters {
+			normalized = strings.ReplaceAll(normalized, d, ",")
+		}
+		exts := strings.Split(normalized, ",")
+		for _, ext := range exts {
+			ext = strings.TrimSpace(ext)
+			if ext == "" { continue }
+			if !strings.HasPrefix(ext, ".") { ext = "." + ext }
+			pagesWhitelist[strings.ToLower(ext)] = true
+		}
+	}
 
 	if flag.NArg() < 1 { flag.Usage(); os.Exit(1) }
 	filePath := flag.Arg(0)
